@@ -6,10 +6,10 @@ This repository contains the reference implementation for the paper **“*”**,
 | Status | Item | Notes |
 | --- | --- | --- |
 | ✅ Done | DeepKoopman and FiLM networks | `modules/network.py` provides the baseline KoopmanNet as well as FiLM-conditioned variants that cover the architectures evaluated in the paper. |
-| ✅ Done | Koopman Neural Lyapunov (KNV\_\theta) network | `modules/ly_function_net_NEW.py` and the training driver in `laten_lyapunov_train_normal.py` expose the Lyapunov head used for certification. |
+| ✅ Done | Koopman Neural Lyapunov (KNV\_\theta) network | `modules/KNV_function_net.py` expose the Koopman neural Lyapunov function used for certification. |
 | ✅ Done | Demo Koopman + KNV checkpoints | Pretrained Koopman and KNV weights will be shared as `logs/{NAME}_log/checkpoint_ko.pth` and `logs/{NAME}_log/LXNTrain_bnk/checkpoint_knv.pth` in the upcoming release. |
-| ✅ Done | KNV vs. Koopman-only loss curves | Serialized arrays at `logs/lyap_loss_record_npy/{knv_losses.npy, koopman_only_losses.npy}` enable quick reproduction of Figure 5. |
-| ⏳ TODO | Demo VSG datasets | Two released `.npz` bundles live under `data_fnl_exp/{NAME}.npz` (`NAME = VSG_demo_p1/p2`) with 100 convergent trajectories each. (Download link withheld until next drop.) |
+| ✅ Done | KNV vs. Koopman-only loss curves | Serialized arrays at `logs/lyap_loss_record_npy/{knv_losses.npy, koopman_only_losses.npy}` demonstrate efficiency of the proposed KNV function. |
+| ⏳ TODO | Demo VSG datasets | Two released `.npz` bundles live under `data_fnl_exp/{NAME}.npz` (`NAME = VSG_demo_p1/p2`) with 100 convergent trajectories each. |
 | ⏳ TODO | Publish a polished Jupyter demonstration | The public demo notebook will ship in a future drop. |
 | ⏳ TODO | Release the full DeepKoopman training workflow | The internal trainer for KoopmanNet pretraining still needs to be cleaned and documented before it can be published. |
 
@@ -70,10 +70,5 @@ plt.grid(alpha=0.2)
 plt.tight_layout()
 plt.show()
 ```
-
-## Roadmap
-
-- **DeepKoopman trainer** – clean up the internal multi-GPU code path, expose FiLM conditioning hooks, and document the hyperparameter sweeps used in the paper.
-- **Public demo notebook** – package the current demo workflow into a narrative tutorial with markdown explanations and automated figure export utilities.
 
 Issues and pull requests are welcome once the remaining TODO items are released. 
