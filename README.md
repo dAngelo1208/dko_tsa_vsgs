@@ -51,6 +51,40 @@ python -m pip install -r requirements.txt  # PyTorch 2.4.0 + NumPy, SciPy, Matpl
 GPU support follows the standard PyTorch installation matrix; adjust the `torch` wheel if you need a specific CUDA build.
 
 
+## NEW: Parameter Guideline (Reproducibility Notes)
+
+This repository exposes the reference implementation used in the manuscript. Below we summarize the practical hyperparameter choices that were used in the case studies, together with simple tuning guidance. The goal is to make the settings easy to reproduce and to clarify which knobs affect which tradeoffs.
+
+### SDML (Spectral Damping Margin Loss)
+
+SDML is implemented via the log-sum-exp (LSE) ``soft maximum''
+\(\widetilde\alpha_{\tau}(\mathcal S_{\theta})\) followed by a one-sided hinge penalty. It encourages the learned latent generator spectrum to satisfy a damping reserve (margin) while remaining a *soft* regularizer that trades off against rollout and one-step linearity fitting.
+
+**Key knobs**
+
+- **Margin magnitude** `margin` (corresponds to \(\mu_m\) in the paper): we use a modest range **[-2, 0]** in p.u. units, with a default value **-1** in the case studies. Start from this interval first.
+- **Temperature** `tau`: controls how sharply the LSE soft maximum focuses on the least-damped (most violating) mode. We schedule `tau` by **cosine annealing from 1.0 → 0.1**.
+- **Loss weight** `delta`: multiplies \(\mathcal L_{\mathrm{SDML}}\) in the total loss. Keep `delta` **mild** so that rollout and Koopman-linearity remain dominant; overly large values can improve the margin objective but typically increase rollout error and the Koopman linear residual.
+
+**Practical recipe**
+
+1. Use `margin = 1.0`, `tau` cosine-annealed **1.0 → 0.1**, and a mild `delta`.
+2. If the learned spectrum shows persistent margin violations (hinge frequently active), slightly increase `delta` *or* increase `margin` within **[-2, 0]**.
+3. If rollout RMSE or the Koopman linear residual increases noticeably, reduce `delta` first (this is usually the most sensitive knob).
+
+### FiLM conditioning
+
+<!-- - **Anchor count** `N`: increasing anchors generally improves interpolation quality, but the marginal gain saturates beyond a moderate `N` (see the anchor-count curve in the manuscript). In our ablations we evaluated `N ∈ {4, 8, 16, 32, 40, 64, 80}`. -->
+- **Admissible parameter domain** \(\mathcal P\): in the case studies, parameters are sampled as bounded variations around a nominal setting \(p_0\) adopted from Shuai et al. (TSG 2019). We report the variation levels in the manuscript; the code uses the same domain consistently for data generation, training, and evaluation.
+
+### Verification (dReal tail-check)
+
+- SMT runtime is sensitive to the **system dimension** and to the geometric complexity of the validated domain \(\Omega\) (e.g., the number of facets in a convex-hull representation). We report mean and worst-case SMT times under fixed verification settings in the manuscript.
+- If verification becomes slow on larger cases, consider reducing \(\Omega\) complexity (e.g., fewer hull points / facet reduction) or verifying localized certificates.
+
+> Note: the exact parameter names in configs may differ by experiment script. Search for `margin`, `tau`, `delta`, and `sdml` in `utils/config.py` and the corresponding run scripts to locate these settings.
+
+
 ## Loss-Curve Comparison
 
 Plot the released arrays directly to recreate the KNV vs. Koopman-only panel:
